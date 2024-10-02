@@ -34,6 +34,17 @@ public class ProductController : ControllerBase
         return Ok(response);
     }
 
+    /// <summary>
+    /// User Story 2: Return products priced in specified currency
+    /// </summary>
+    [HttpGet("GetProductsInCurrency/{currency}"), Produces(typeof(ApiDto.PaginatedList<ApiDto.Product>))]
+    public async Task<IActionResult> GetProductsInCurrency(string currency, int? pageStart, int? pageSize)
+    {
+        var data = await _mediator.Send(new GetProductsInCurrencyQuery(currency, pageStart, pageSize));
+        var response = _mapper.Map<ApiDto.PaginatedList<ApiDto.Product>>(data);
+        return Ok(response);
+    }
+
     [HttpGet("GetRandomProducts"), Produces(typeof(ApiDto.PaginatedList<ApiDto.Product>))]
     public async Task<IActionResult> GetRandomProducts(int pageStart = 0, int pageSize = 5)
     {

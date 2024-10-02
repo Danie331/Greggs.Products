@@ -15,10 +15,31 @@ namespace Greggs.Products.Services.Core
             _mapper = mapper;
         }
 
+        public PaginatedList<Product> GetProductsInCurrency(string currency, int? pageStart, int? pageSize)
+        {
+            // Contrived lookup - would normally fetch these values from a data source externally
+            var currencyLookup = new Dictionary<string, decimal>() { { "EUR", 1.11m } };
+
+            if (!currencyLookup.Keys.Any(k => k.ToLower().Equals(currency.ToLower())))
+            {
+                throw new ArgumentException("Currency not found");
+            }
+
+            var exchangeRate = currencyLookup[currency.ToUpper()];
+            var data = _mapper.Map<List<Product>>(_dataAccess.List());
+
+            foreach (var item in data)
+            {
+                item.PriceInEuros = item.PriceInPounds * exchangeRate;
+            }
+
+            return PaginateResults(() => data, pageStart, pageSize);
+        }
+
         public PaginatedList<Product> GetProductsSortedByDate(int? pageStart, int? pageSize)
         {
             var data = _mapper.Map<List<Product>>(_dataAccess.List().OrderByDescending(product => product.DateAdded)); // The filtering could be added into the data layer
-            return RetrievePaginatedResults(() => data, pageStart, pageSize);
+            return PaginateResults(() => data, pageStart, pageSize);
         }    
 
         public PaginatedList<Product> GetRandomSelection(int? pageStart, int? pageSize)
@@ -33,10 +54,10 @@ namespace Greggs.Products.Services.Core
                 .Select((x, i) => data[x + i])
                 .ToArray();
 
-            return RetrievePaginatedResults(() => sample.ToList(), pageStart, pageSize);
+            return PaginateResults(() => sample.ToList(), pageStart, pageSize);
         }
 
-        private PaginatedList<Product> RetrievePaginatedResults(Func<List<Product>> dataFetcher, int? pageStart, int? pageSize)
+        private PaginatedList<Product> PaginateResults(Func<List<Product>> dataFetcher, int? pageStart, int? pageSize)
         {
             var data = dataFetcher();
             var count = data.Count;
