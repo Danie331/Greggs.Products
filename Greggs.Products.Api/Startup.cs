@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Reflection;
 
 namespace Greggs.Products.Api;
 
@@ -9,6 +10,13 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
+        // Add MediatR
+        services.AddMediatR(cf => cf.RegisterServicesFromAssembly(typeof(Program).Assembly));
+        // Add Automapper
+        services.AddAutoMapper(new Assembly[] { Assembly.GetAssembly(typeof(Program)) });
+        // DI registration
+        DependencyRegistration.Register(services);
+
         services.AddControllers();
 
         services.AddSwaggerGen();

@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Greggs.Products.Api.Models;
+﻿using AutoMapper;
+using Greggs.Products.Api.CQRS.Query.UseCases;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
+using ApiDto = Greggs.Products.Api.Models;
 
 namespace Greggs.Products.Api.Controllers;
 
@@ -11,30 +12,22 @@ namespace Greggs.Products.Api.Controllers;
 [Route("[controller]")]
 public class ProductController : ControllerBase
 {
-    private static readonly string[] Products = new[]
-    {
-        "Sausage Roll", "Vegan Sausage Roll", "Steak Bake", "Yum Yum", "Pink Jammie"
-    };
-
+    private readonly IMediator _mediator;
+    private readonly IMapper _mapper;
     private readonly ILogger<ProductController> _logger;
 
-    public ProductController(ILogger<ProductController> logger)
+    public ProductController(ILogger<ProductController> logger, IMediator mediator, IMapper mapper)
     {
         _logger = logger;
+        _mediator = mediator;
+        _mapper = mapper;
     }
 
-    [HttpGet]
-    public IEnumerable<Product> Get(int pageStart = 0, int pageSize = 5)
+    [HttpGet, Produces(typeof(ApiDto.PaginatedList<ApiDto.Product>))]
+    public async Task<IActionResult> Get(int pageStart = 0, int pageSize = 5)
     {
-        if (pageSize > Products.Length)
-            pageSize = Products.Length;
-
-        var rng = new Random();
-        return Enumerable.Range(1, pageSize).Select(index => new Product
-            {
-                PriceInPounds = rng.Next(0, 10),
-                Name = Products[rng.Next(Products.Length)]
-            })
-            .ToArray();
+        var data = await _mediator.Send(new GetRandomSelectionQuery(pageStart, pageSize));
+        var response = _mapper.Map<ApiDto.PaginatedList<ApiDto.Product>>(data);
+        return Ok(response);
     }
 }
