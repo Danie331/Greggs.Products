@@ -23,8 +23,19 @@ public class ProductController : ControllerBase
         _mapper = mapper;
     }
 
-    [HttpGet, Produces(typeof(ApiDto.PaginatedList<ApiDto.Product>))]
-    public async Task<IActionResult> Get(int pageStart = 0, int pageSize = 5)
+    /// <summary>
+    /// User Story 1: Return products ordered by date in descending order
+    /// </summary>
+    [HttpGet("GetProductsSortedByDate"), Produces(typeof(ApiDto.PaginatedList<ApiDto.Product>))]
+    public async Task<IActionResult> GetProductsSortedByDate(int? pageStart, int? pageSize)
+    {
+        var data = await _mediator.Send(new GetProductsSortedByDateQuery(pageStart, pageSize));
+        var response = _mapper.Map<ApiDto.PaginatedList<ApiDto.Product>>(data);
+        return Ok(response);
+    }
+
+    [HttpGet("GetRandomProducts"), Produces(typeof(ApiDto.PaginatedList<ApiDto.Product>))]
+    public async Task<IActionResult> GetRandomProducts(int pageStart = 0, int pageSize = 5)
     {
         var data = await _mediator.Send(new GetRandomSelectionQuery(pageStart, pageSize));
         var response = _mapper.Map<ApiDto.PaginatedList<ApiDto.Product>>(data);

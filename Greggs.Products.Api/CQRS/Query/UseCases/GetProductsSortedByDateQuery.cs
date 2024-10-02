@@ -3,12 +3,11 @@ using MediatR;
 
 namespace Greggs.Products.Api.CQRS.Query.UseCases
 {
-    public class GetRandomSelectionQuery : IRequest<PaginatedList<Product>>
+    public class GetProductsSortedByDateQuery : IRequest<PaginatedList<Product>>
     {
         public int? PageStart { get; }
         public int? PageSize { get; }
-
-        public GetRandomSelectionQuery(int? pageStart, int? pageSize)
+        public GetProductsSortedByDateQuery(int? pageStart, int? pageSize)
         {
             PageStart = pageStart;
             PageSize = pageSize;
